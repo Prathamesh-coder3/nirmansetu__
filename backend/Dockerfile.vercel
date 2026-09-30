@@ -1,0 +1,24 @@
+# NirmaanSetu Spring Boot service for Vercel Services.
+# Vercel service root: backend/
+# Vercel injects PORT; Spring Boot reads ${PORT:8080}.
+
+FROM maven:3.9.11-eclipse-temurin-21 AS build
+WORKDIR /workspace
+
+# Cache Maven dependency resolution separately from source compilation.
+COPY pom.xml ./
+RUN mvn -B -DskipTests dependency:go-offline
+
+COPY src ./src
+RUN mvn -B -DskipTests clean package
+
+FROM eclipse-temurin:21-jre-jammy AS runtime
+WORKDIR /app
+
+# Copy only the executable Spring Boot artifact into the runtime image.
+COPY --from=build /workspace/target/nirmaansetu-1.0.0.jar /app/nirmaansetu.jar
+
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:InitialRAMPercentage=25 -Djava.security.egd=file:/dev/./urandom"
+
+# Vercel routes HTTP traffic to the port provided by the PORT environment variable.
+ENTRYPOINT ["java", "-jar", "/app/nirmaansetu.jar"]

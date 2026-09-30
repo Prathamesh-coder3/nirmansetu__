@@ -1,0 +1,9 @@
+.git
+.github
+.vercel
+*.log
+*.zip
+*.7z
+backend/target
+frontend/dist
+frontend/node_modules
